@@ -1,9 +1,11 @@
 ﻿using ExileCore;
+using ExileCore.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace AutoPlagueBearer
 {
@@ -32,7 +34,7 @@ namespace AutoPlagueBearer
             bool enemiesNearby = false;
             foreach (var entity in entities)
             {
-                if (entity.IsAlive && entity.IsHostile)
+                if (entity.IsAlive && entity.IsHostile && entity.IsTargetable)
                 {
                     float distance = (player.Pos - entity.Pos).Length();
                     if (distance <= this.Settings.Range)

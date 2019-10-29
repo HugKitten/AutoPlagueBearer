@@ -7,6 +7,7 @@ namespace AutoPlagueBearer
     public class AutoPlagueBearerSetting : ISettings
     {
         public ToggleNode Enable { get; set; } = new ToggleNode(true);
+        public RangeNode<int> MinimumHealth { get; set; } = new RangeNode<int>(10, 0, 100);
         public RangeNode<int> Range { get; set; } = new RangeNode<int>(500, 0, 10000);
         public RangeNode<int> CoolDown { get; set; } = new RangeNode<int>(511, 0, 25000);
         public HotkeyNode HotKey { get; set; } = new HotkeyNode(Keys.None);
