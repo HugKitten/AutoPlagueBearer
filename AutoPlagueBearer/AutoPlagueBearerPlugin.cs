@@ -1,4 +1,5 @@
 ﻿using ExileCore;
+using ExileCore.PoEMemory.Components;
 using ExileCore.Shared;
 using System;
 using System.Collections.Generic;
@@ -11,15 +12,34 @@ namespace AutoPlagueBearer
 {
     public class AutoPlagueBearerPlugin : BaseSettingsPlugin<AutoPlagueBearerSetting>
     {
-        DateTime _lastCast = DateTime.MinValue;
+        private DateTime _lastCast = DateTime.MinValue;
+
+        private void OnToggleSSkillSetNodeChange()
+        {
+            Input.RegisterKey(this.Settings.ToggleSkillSetNode);
+        }
+
+        public override bool Initialise()
+        {
+            Input.RegisterKey(this.Settings.ToggleSkillSetNode);
+            this.Settings.ToggleSkillSetNode.OnValueChanged += OnToggleSSkillSetNodeChange;
+            return true;
+        }
 
         public override Job Tick()
         {
             var player = this.GameController.Game.IngameState.Data.LocalPlayer;
             var entities = this.GameController.Entities;
             var buffs = player.Buffs;
+            var life = player.GetComponent<Life>();
 
             if (!this.Settings.Enable)
+            {
+                return null;
+            }
+
+            // Returns null if not enough mana
+            if (this.Settings.MinimumMana > life.CurMana)
             {
                 return null;
             }
@@ -46,14 +66,13 @@ namespace AutoPlagueBearer
 
             bool auraOn = buffs.Any(b => b.Name == "corrosive_shroud_aura");
 
+            bool switchState = false;
             if (enemiesNearby)
             {
                 // Turn aura on if enemies nearby
                 if (!auraOn)
                 {
-                    Input.KeyDown(this.Settings.HotKey);
-                    Input.KeyUp(this.Settings.HotKey);
-                    _lastCast = DateTime.UtcNow;
+                    switchState = true;
                 }
             }
             else
@@ -61,8 +80,24 @@ namespace AutoPlagueBearer
                 // Turn off aura if enemies not nearby
                 if (auraOn)
                 {
+                    switchState = true;
+                }
+            }
+
+            if (switchState)
+            {
+                if (this.Settings.HotKey.Value.HasFlag(this.Settings.ToggleSkillSetNode))
+                {
                     Input.KeyDown(this.Settings.HotKey);
                     Input.KeyUp(this.Settings.HotKey);
+
+                    _lastCast = DateTime.UtcNow;
+                }
+                else if (!Input.IsKeyDown(this.Settings.ToggleSkillSetNode))
+                {
+                    Input.KeyDown(this.Settings.HotKey);
+                    Input.KeyUp(this.Settings.HotKey);
+
                     _lastCast = DateTime.UtcNow;
                 }
             }
